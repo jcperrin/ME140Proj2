@@ -33,6 +33,7 @@ A = [27.3, 6.4, 9.0, 7.2, 4.7, 3.87]'.*insqToMsq; % [m^2]
 
 fname = 'Data_proj2.xlsx';
 sname = 'CollectedData';
-range = 'A2:M10';
-[NUM, TXT, RAW] = xlsread(fname, sname, range); % basic reading
-% collectedData = readtable(fname, 'Sheet', sname, 'Range', range);
+range = 'A3:M11';
+%[NUM, TXT, RAW] = xlsread(fname, sname, range); % basic reading
+collectedData = readtable(fname, 'Sheet', sname, 'Range', range);
+summary(collectedData);
