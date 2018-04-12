@@ -19,6 +19,7 @@ const.insqToMsq = 0.00064516; % [m^2/in^2]
 const.lbfToN = 4.44822; % [N/lbf]
 const.R = 287; % [kJ/kg/k] Gas cosntant of air
 const.KCdiff = 273; % [
+const.kPaToPa = 1e3; % [Pa/kPa]
 
 %% Given Data
 % The following values were supplied to us in the original project
@@ -38,12 +39,17 @@ sname = 'CollectedData';
 range = 'A3:M11';
 %[NUM, TXT, RAW] = xlsread(fname, sname, range); % basic reading
 stateData = readtable(fname, 'Sheet', sname, 'Range', range);
-%summary(collectedData);
-stateData.Properties.VariableUnits = {'', 'C', 'C', 'C', 'C', 'C', ...
-    'kPa', 'kPa', 'kPa', 'kPa', 'kPa', 'kg/s', 'N'};
 
 %% Convert Data
-
+% Before we start to do calculations on this data, let's convert it to the
+% basic units that we will use throughout the course of our analysis. That
+% means converting all temperature values into Kelvin and all pressure
+% values into Pascals.
+stateData{:, 2:6} = stateData{:, 2:6} + const.KCdiff; % convert T to [K]
+stateData{:, 7:11} = stateData{:, 7:11} * const.kPaToPa + 1; % convert P to [Pa]
+stateData.Properties.VariableUnits = {'', 'K', 'K', 'K', 'K', 'K', ...
+    'Pa', 'Pa', 'Pa', 'Pa', 'Pa', 'kg/s', 'N'};
+summary(stateData);
 
 %% Call a Helper function for each Deliverable
 % Each function should take in the current table of calculated data and
