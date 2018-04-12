@@ -1,10 +1,11 @@
 # ME140Proj2
 Analysis of an SR-30 Turbojet Engine
+2018-04-11
 
-Jean-Christophe Perrin
-Richard Randall
-Beck Goodloe
-Jason Trinidad
+- Jean-Christophe Perrin
+- Richard Randall
+- Beck Goodloe
+- Jason Trinidad
 
 ## Deliverables
 1. Tables
