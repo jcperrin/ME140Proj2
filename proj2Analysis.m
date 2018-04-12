@@ -37,11 +37,9 @@ given.A = [27.3, 6.4, 9.0, 7.2, 4.7, 3.87]'.*const.insqToMsq; % [m^2]
 % that data into a vector for use in our MatLab script. The excel file
 % should never be modified by our script.
 
-fname = 'Data_proj2.xlsx';
-sname = 'CollectedData';
-range = 'A3:M11';
+fname = 'data.txt';
 %[NUM, TXT, RAW] = xlsread(fname, sname, range); % basic reading
-stateData = readtable(fname, 'Sheet', sname, 'Range', range);
+stateData = readtable(fname);
 
 %% Convert Data
 % Before we start to do calculations on this data, let's convert it to the
