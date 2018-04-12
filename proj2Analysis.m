@@ -27,4 +27,12 @@ jetAHeating = 42.8e6; % [J/kg/K]
 A = [27.3, 6.4, 9.0, 7.2, 4.7, 3.87]'.*insqToMsq; % [m^2]
 
 %% Import Collected Data
+% Our collected data is in an excel file named `Data_proj2`. Here we import
+% that data into a vector for use in our MatLab script. The excel file
+% should never be modified by our script.
 
+fname = 'Data_proj2.xlsx';
+sname = 'CollectedData';
+range = 'A2:M10';
+[NUM, TXT, RAW] = xlsread(fname, sname, range); % basic reading
+% collectedData = readtable(fname, 'Sheet', sname, 'Range', range);

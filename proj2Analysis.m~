@@ -15,17 +15,25 @@ clc;
 % These are mostly conversion factors so that we can convert from imperial
 % units collected into metric.
 
-insqToMsq = NaN; % [m^2/in^2] TODO
-lbfToNm = NaN; % [Nm/lbf] TODO
+insqToMsq = 0.00064516; % [m^2/in^2]
+lbfToN = 4.44822; % [N/lbf]
 
 %% Given Data
 % The following values were supplied to us in the original project
 % specifications and should not be changed.
 
-pitotEffectiveArea = 6.4; % [in^2]
+pitotEffectiveArea = 6.4*insqToMsq; % [m^2]
 jetAHeating = 42.8e6; % [J/kg/K]
-A = [2
-
+A = [27.3, 6.4, 9.0, 7.2, 4.7, 3.87]'.*insqToMsq; % [m^2]
 
 %% Import Collected Data
+% Our collected data is in an excel file named `Data_proj2`. Here we import
+% that data into a vector for use in our MatLab script. The excel file
+% should never be modified by our script.
 
+fname = 'Data_proj2.xlsx';
+sname = 'CollectedData';
+range = 'A2:M10';
+[NUM, TXT, RAW] = xlsread(fname, sname, range); % more basic reading
+% option
+% collectedData = readtable(fname, 'Sheet', sname, 'Range', range);
