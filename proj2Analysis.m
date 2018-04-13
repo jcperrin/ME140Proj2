@@ -42,9 +42,47 @@ fname = 'data.txt';
 collectedData = readtable(fname);
 collectedData.Properties.VariableUnits = {'', 'C', 'C', 'C', 'C', 'C', ...
     'C', 'kPa', 'kPa', 'kPa', 'kPa', 'kPa', 'kg/s', 'lbs'};
-summary(collectedData);
+
+nObservations = height(collectedData); % Number of observations
+% disp(collectedData);
 
 %%
 % We also measured the following values seperately.
 T1 = 23; % [C] room temp
 P1 = 101.4e3; % [Pa] atmospheric pressue
+
+%% Plots
+% Use your performance data and area measurements (listed in Appendix) to
+% construct a series of plots showing how the following quantities vary
+% with spool speed: 
+%
+% * station stagnation temperature (K), 
+% * station stagnation pressure (kPa, absolute), 
+% * station Mach number
+% * station velocity (m/s). 
+%
+% Make sure to include Station 1 in all of your plots. 
+
+krpm = collectedData.RPM/1000;
+
+%% Stagnation Temperature v. RPM
+% Let's collect all of the stagnation temperatures that we collect into a
+% table. We can slice the variables of interest out of the table we
+% imported earlier. However, we are still missing T1. This is the same for
+% all trials -- the ambient air temperature of the lab. We generate a
+% vector of this measurement (one for each trial) and collected all
+% measurements in an array.
+
+vars = {'T2', 'T3', 'T4', 'T5', 'T8'};
+stagTemps = collectedData{:,vars} + const.KCdiff; % [K]
+T1_vec = T1 * ones(nObservations, 1) + const.KCdiff; % [K]
+stagTemps = [T1_vec, stagTemps]; % [K] all T0 observations
+
+%%
+% Now plot those stagnation temperatures as a function of RPM.
+
+plot(krpm, stagTemps, '-o');
+xlabel('Compressor Angular Speed [kRPM]');
+ylabel('Temperature [K]');
+legend(vars, 'Location', 'BestOutside');
+plotFixer();
