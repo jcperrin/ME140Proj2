@@ -34,9 +34,7 @@ given.A = [27.3, 6.4, 9.0, 7.2, 4.7, 3.87]'.*const.insqToMsq; % [m^2]
 
 %% Import Collected Data
 % We import the collected data into an table for use throughout our
-% function. This table should never be changed, compromising the validity
-% of our collected data. Instead, all deried values should be copied out
-% the table into a seperate vector or table.
+% function. This table should never be changed, compromising the se
 
 fname = 'data.txt';
 collectedData = readtable(fname);
