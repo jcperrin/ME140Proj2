@@ -46,11 +46,10 @@ stateData = readtable(fname);
 % basic units that we will use throughout the course of our analysis. That
 % means converting all temperature values into Kelvin and all pressure
 % values into Pascals.
-stateData{:, 2:6} = stateData{:, 2:6} + const.KCdiff; % convert T to [K]
-stateData{:, 7:11} = stateData{:, 7:11} * const.kPaToPa + 1; % convert P to [Pa]
-stateData.Properties.VariableUnits = {'', 'K', 'K', 'K', 'K', 'K', ...
-    'Pa', 'Pa', 'Pa', 'Pa', 'Pa', 'kg/s', 'N'};
-summary(stateData);
+
+stateData.Properties.VariableUnits = {'', 'C', 'C', 'C', 'C', 'C', 'C', ...
+    'kPa', 'kPa', 'kPa', 'kPa', 'kPa', 'kg/s', 'lbs'};
+summary(stateData); % need to update values
 
 %% Call a Helper function for each Deliverable
 % Each function should take in the current table of calculated data and
