@@ -67,7 +67,6 @@ krpm = collectedData.RPM/1000;
 %% Solve for First RPM
 Tm = collectedData{1, 2:6};
 Pm = collectedData{1, 8:12};
-mdot = collectedData{1, 13};
-thrust = collectedData{1, 14};
+mdot = collected
+thrust = 
 calculatedValues = solveEachLocation(Tm, Pm, mdot, thrust);
-
