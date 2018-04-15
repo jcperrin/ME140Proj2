@@ -1,10 +1,40 @@
-%Testing solving for T0, P0, M from experimental values
+function outputTable = solveEachLocation(Tm, Pm, mdot_fuel, real_thrust_lbs)
+%% solveEachLocation
+% This function solves for the values of interest at each location along
+% the length of the jet engine that we are trying to analyze.
+%
+%% Syntax
+%# table = solveEachLocation(Tm, Pm, mdot_fuel, real_thrust_lbs)
+%
+%% Description
+% This function accepts vectors for the meausred values of temperature and
+% pressure at each location of interest in the jet engine for one trial (a
+% single value of RPM).
+% 
+% * Tm - A horizontal vector of the temperatures measured at locations 2-5, 8
+% * Pm - A vector of the temperatures measured at locations 2-5, 8
+% * mdot_fuel - A double for the rate of fuel consumption
+% * real_trhust_lbs - Measured thrust produced by the engine
+%
+%% Example
+% TODO
+%
+%% See Also
+% TODO
 
-%Constants
-R = 287;
-P_atm = 101325;
-ZK = 273.15;
-conv = 1/1550;%square meters per square inch
+% Testing solving for T0, P0, M from experimental values
+
+%% Ensure all input values are formatted correctly
+assert(isequal(size(Tm),  [1, 5]), "Tm must be a horizontal vector 5 wide");
+assert(isequal(size(Pm),  [1, 5]), "Pm must be a horizontal vector 5 wide");
+assert(isfloat(mdot_fuel), "mdot_fuel must be of type float");
+assert(isfloat(real_thrust_lbs), "real_thrust_lbs must be of type float");
+
+%% Constants
+R = 287; % [kJ/kg/k] Gas constant of air
+P_atm = 101325; % [Pa] atmospheric pressure
+ZK = 273.15; % [deg] Celsius to metric conversion.
+conv = 1/1550; % [m^2/in^2] square meters per square inch
 
 %Test values
 Tm_2 = 21.3838+ZK;
@@ -12,11 +42,13 @@ Tm_3 = 113.8878+ZK;
 Tm_4 = 581.9337+ZK;
 Tm_5 = 493.1745+ZK;
 Tm_8 = 478.7055+ZK;
+
 Pd_2 = 1000*1.5733;
 P0_3 = 1000*108.9267+P_atm;
 P_4 = 1000*103.8528+P_atm;
 P0_5 = 1000*12.4216+P_atm;
 P0_8 = 1000*9.7488+P_atm;
+
 A_1 = 27.3*conv;
 A_2 = 6.4*conv;
 A_3 = 9.0*conv;
@@ -28,8 +60,8 @@ Rf_3 = 0.68;
 Rf_4 = 0.68;
 Rf_5 = 0.86;
 Rf_8 = 0.68;
-mdot_fuel = 0.0029;
-real_thrust_lbs = 6.7000;
+%mdot_fuel = 0.0029;
+%real_thrust_lbs = 6.7000;
 
 % Code is decomposed so that all the iteration (though
 % not all the math) is in the functions at the bottom.
@@ -100,9 +132,10 @@ states(8).V = V_8;
 %Thrust as sanity check
 thrust = (mdot_2+mdot_fuel)*V_8 - (mdot_2)*V_1;
 thrust_lbs = thrust/4.45;
-disp(thrust_lbs);
-disp(real_thrust_lbs);
+%disp(thrust_lbs);
+%disp(real_thrust_lbs);
 
+end %overall function
 
 %Begin functions for iteration
 
@@ -235,17 +268,21 @@ function out = cp(T)
     airCoeffs = fliplr([28.11, 0.1967e-2, 0.4802e-5,-1.966e-9]);
     out = 1000*polyval(airCoeffs, T)/28.97;
 end
+
 function out = integral_cp(T)
     airCoeffs = fliplr([28.11, 0.1967e-2, 0.4802e-5,-1.966e-9]);
     intCoeffs = polyint(airCoeffs);
     1000*polyval(intCoeffs, T)/28.97;
 end
+
 function out = cp_avg(T1, T2)
     out = (integral_cp(T2) - integral_cp(T1)) / (T2-T1);
 end
+
 function out = integrate_cp(T1, T2)
     out = (integral_cp(T2) - integral_cp(T1));
 end
+
 function out = cv(T)
     R = 287;
     out = cp(T)-R;
