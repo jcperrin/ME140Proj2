@@ -64,16 +64,30 @@ P1 = 101.4e3; % [Pa] atmospheric pressue
 % Make sure to include Station 1 in all of your plots. 
 krpm = collectedData.RPM/1000;
 
-%% Solve for First RPM
+%% Solve for Each RPM Observation
+% Loop over every observation taken. For each set of Tm or Pm (the measured
+% values of Temp and Pressure) call Richard's Analysis to calculated the
+% values of interest (T0, P0, M, V). These are stored in a 2D array. Each
+% row of the array corresponds to an observation (i.e. one RPM). 
+% Each column is a location of interest.
 
-Tm = collectedData{1, 2:6};
-Pm = collectedData{1, 8:12};
-mdot = collectedData{1, 13};
-thrust = collectedData{1, 14};
-calculatedValues = solveEachLocation(Tm, Pm, mdot, thrust);
-calculatedValues([6, 7], :) = [];
-T0 = cell2mat(calculatedValues.T0)';
-P0 = cell2mat(calculatedValues.P0)';
-M = cell2mat(calculatedValues.M)';
-v = cell2mat(calculatedValues.V)';
+nLocations = 6; % locations of interest 1-5, 8
+T0 = NaN(nObservations, nLocations);
+P0 = NaN(nObservations, nLocations);
+M = NaN(nObservations, nLocations);
+V = NaN(nObservations, nLocations);
+
+for iObservation = 1:nObservations
+    Tm = collectedData{iObservation, 2:6};
+    Pm = collectedData{iObservation, 8:12};
+    mdot = collectedData{iObservation, 13};
+    thrust = collectedData{iObservation, 14};
+    calculatedValues = solveEachLocation(Tm, Pm, mdot, thrust);
+    calculatedValues([6, 7], :) = [];
+    T0(iObservation, :) = cell2mat(calculatedValues.T0)';
+    P0(iObservation, :) = cell2mat(calculatedValues.P0)';
+    M(iObservation, :) = cell2mat(calculatedValues.M)';
+    V(iObservation, :) = cell2mat(calculatedValues.V)';
+end
+
 
