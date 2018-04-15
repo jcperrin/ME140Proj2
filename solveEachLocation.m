@@ -17,6 +17,7 @@ function outputTable = solveEachLocation(Tm, Pm, mdot_fuel, real_thrust_lbs)
 % * real_thrust_lbs - Measured thrust produced by the engine
 %
 % * outputTable - all of the values of interest
+% * mdot_air - mass of air flowing through engine
 %
 %% Example
 % TODO

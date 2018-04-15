@@ -65,9 +65,15 @@ P1 = 101.4e3; % [Pa] atmospheric pressue
 krpm = collectedData.RPM/1000;
 
 %% Solve for First RPM
+
 Tm = collectedData{1, 2:6};
 Pm = collectedData{1, 8:12};
 mdot = collectedData{1, 13};
 thrust = collectedData{1, 14};
 calculatedValues = solveEachLocation(Tm, Pm, mdot, thrust);
+calculatedValues([6, 7], :) = [];
+T0 = cell2mat(calculatedValues.T0)';
+P0 = cell2mat(calculatedValues.P0)';
+M = cell2mat(calculatedValues.M)';
+v = cell2mat(calculatedValues.V)';
 
