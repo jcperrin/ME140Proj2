@@ -1,4 +1,4 @@
-function outputTable = solveEachLocation(Tm, Pm, mdot_fuel, real_thrust_lbs)
+function [outputTable, mdotAir] = solveEachLocation(Tm, Pm, mdot_fuel, real_thrust_lbs)
 %% solveEachLocation
 % This function solves for the values of interest at each location along
 % the length of the jet engine that we are trying to analyze.
@@ -87,6 +87,7 @@ states(2).T0 = T0_2;
 states(2).T = T_2;
 states(2).V = V_2;
 states(2).mdot = mdot_2;
+mdotAir = mdot_2; % returned value
 
 %% Solve state 1
 [M_1,T_1] = solve1(mdot_2,P0_2,T0_2, A_1, R);%Ideal intake

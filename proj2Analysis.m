@@ -71,19 +71,21 @@ krpm = collectedData.RPM/1000;
 % row of the array corresponds to an observation (i.e. one RPM). 
 % Each column is a location of interest.
 
-nLocations = 6; % locations of interest 1-5, 8
+nLocations = 6; % locations of interest: 1-5, 8
 T0 = NaN(nObservations, nLocations);
 P0 = NaN(nObservations, nLocations);
 Ma = NaN(nObservations, nLocations);
 V = NaN(nObservations, nLocations);
+mdotAir = NaN(nObservations, 1);
 
 for iObservation = 1:nObservations
     Tm = collectedData{iObservation, 2:6};
     Pm = collectedData{iObservation, 8:12};
     mdot = collectedData{iObservation, 13};
     thrust = collectedData{iObservation, 14};
-    calculatedValues = solveEachLocation(Tm, Pm, mdot, thrust);
-    calculatedValues([6, 7], :) = [];
+    [calculatedValues, thisMdotAir] = solveEachLocation(Tm, Pm, mdot, thrust);
+    mdotAir(iObservation) = thisMdotAir;
+    calculatedValues([6, 7], :) = []; % deletes rows 6/7 (no instruments)
     T0(iObservation, :) = cell2mat(calculatedValues.T0)';
     P0(iObservation, :) = cell2mat(calculatedValues.P0)';
     Ma(iObservation, :) = cell2mat(calculatedValues.M)';
@@ -129,3 +131,40 @@ legend(legendString, 'Location', 'bestoutside');
 title('Velocity v. Spool Speed');
 plotFixer();
 print('-depsc','-tiff','-r300','plots/velVsRpm');
+
+%% Mass Flow Rate vs Spool Speed
+plot(krpm, mdotAir, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('mDot [g/s]');
+title('Air Flow Rate v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/mdotAirVsRpm');
+
+%% Fuel Flow Rate vs Spool Speed
+mdotFuel = collectedData.FuelFlow * 1e3; % [g/s]
+
+plot(krpm, mdotFuel, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('mDot [g/s]');
+title('Fuel Flow Rate v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/mdotFuelVsRpm');
+
+%% Air/Fuel Ratio vs. Spool Speed
+airFuelRatio = mdotAir ./ mdotFuel;
+
+plot(krpm, airFuelRatio, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Air-Fuel Ratio [1]');
+title('Air-Fuel Ratio v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/fuelAirRatioVsRpm');
+
+%% Calculate Thrust versus Experimental
+% TODO: COMPLETE
+
+idealThrust = mdotAir.*(V(:, end) - V(:, 1));
+plot(krpm, idealThrust, krpm, collectedData.Thrust, '-o');
+print('-depsc','-tiff','-r300','plots/thrustsVsRpm');
+
+
