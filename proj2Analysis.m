@@ -74,7 +74,7 @@ krpm = collectedData.RPM/1000;
 nLocations = 6; % locations of interest 1-5, 8
 T0 = NaN(nObservations, nLocations);
 P0 = NaN(nObservations, nLocations);
-M = NaN(nObservations, nLocations);
+Ma = NaN(nObservations, nLocations);
 V = NaN(nObservations, nLocations);
 
 for iObservation = 1:nObservations
@@ -86,8 +86,46 @@ for iObservation = 1:nObservations
     calculatedValues([6, 7], :) = [];
     T0(iObservation, :) = cell2mat(calculatedValues.T0)';
     P0(iObservation, :) = cell2mat(calculatedValues.P0)';
-    M(iObservation, :) = cell2mat(calculatedValues.M)';
+    Ma(iObservation, :) = cell2mat(calculatedValues.M)';
     V(iObservation, :) = cell2mat(calculatedValues.V)';
 end
 
+%% Plot Stagnation Temp vs Spool Speed
+legendString = {'Station 1', 'Station 2', 'Station 3', 'Station 4', ...
+    'Station 5', 'Station 8'};
 
+plot(krpm, T0, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Stagnation Temp [k]');
+legend(legendString, 'Location', 'bestoutside');
+title('Stagnation Temperature v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/stagTVsRpm');
+
+%% Plot Stagnation Pressure vs Spool Speed
+plot(krpm, P0, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Stagnation Pressure [Pa]');
+legend(legendString, 'Location', 'bestoutside');
+title('Stagnation Pressure v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/stagPVsRpm');
+
+%% Mach Number vs Spool Speed
+
+plot(krpm, Ma, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Mach Number [1]');
+legend(legendString, 'Location', 'bestoutside');
+title('Mach Number v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/MaVsRpm');
+
+%% Velocity vs Spool Speed
+plot(krpm, V, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Velocity [m/s]');
+legend(legendString, 'Location', 'bestoutside');
+title('Velocity v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/velVsRpm');
