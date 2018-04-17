@@ -7,7 +7,7 @@
 % Trinidad
 %
 % Created: 2018-04-11
-% Edited: 2018-04-11
+% Edited: 2018-04-16
 clear all;
 clc;
 
@@ -23,7 +23,8 @@ const.kPaToPa = 1e3; % [Pa/kPa]
 const.kJkmol2Jkg = 1e3/28.97; %[J/kg * kmol/kJ]
 const.airCoefs = const.kJkmol2Jkg .* ...
     fliplr([28.11, 0.1967e-2, 0.4802e-5,-1.966e-9]); % [J/kg/k] cp air
-const.LHVJetA = 42800; % kJ/kg
+const.LHVJetA = 42800; % [kJ/kg]
+const.kg2g = 1e3; % [kg/g]
 
 %% Given Data
 % The following values were supplied to us in the original project
@@ -80,18 +81,6 @@ for iObservation = 1:nObservations
     Ma(iObservation, :) = cell2mat(calculatedValues.M)';
     V(iObservation, :) = cell2mat(calculatedValues.V)';
 end
-
-%% Other values
-
-
-idealThrust = (mdotAir+mdotFuel).*V(:, end);
-
-sp_thrust = idealThrust ./ mdotAir;
-TSFC = idealThrust ./ mdotFuel; % Thrust Specific Fuel Consumption
-
-powerIn = mdotFuel*const.LHVJetA; % [kW]
-powerThrust = idealThrust.*V(:,end); 
-thermal_eff = powerThrust ./ powerIn;
 
 %% Deliverable 2
 % Use your performance data and area measurements (listed in Appendix) to
@@ -158,31 +147,42 @@ print('-depsc','-tiff','-r300','plots/velVsRpm');
 %
 % TODO: Convert to plotyy
 
+scaledMdotAir = mdotAir.*const.kg2g; % [g/s]
+scaledMdotFuel = mdotFuel.*const.kg2g * 100; % 100 [g/s]
 
-scaledMdotAir = mdotAir*1e2; % [g/s]/10 mdot_air is converted to g/s, then divided by 10
-sacledMdotFuel = mdotFuel*1e4; % mdot_fuel is converted to g/s, then multiplied by 10
-
-legendString = {'Air mass flow rate (*10)', 'Fuel mass flow rate (/10)',...
-    'Air-fuel ratio'};
-
-hold on
-plot(krpm, scaledMdotAir, '-o'); 
-plot(krpm, scaledMdotFuel, '-o'); 
-plot(krpm, airFuelRatio, '-o'); 
-hold off
+[hAx,hLine1,hLine2] = plotyy(krpm, airFuelRatio, [krpm, krpm],...
+                                [scaledMdotAir, scaledMdotFuel]);
 
 xlabel('Spool speed [kRPM]');
-ylabel('Air mass flow rate [g/s], Fuel mass flow rate [g/s], Air-fuel ratio');
-legend(legendString, 'Location', 'bestoutside');
-title('Air Mass Flow Rate, Fuel Mass Flow Rate, and Air-Fuel Ratio v. Spool Speed');
+ylabel(hAx(1), 'Rate_{Air} [g/s],     Rate_{Fuel} [.01 g/s]') % left y-axis 
+ylabel(hAx(2), 'Air:Fuel') % right y-axis
+
+legendString = {'Air-fuel ratio', 'Air mass flow rate', ...
+    'Fuel mass flow rate'};
+legend(legendString, 'Location', 'southeast');
+title('Air Mass Flow, Fuel Mass Flow, and Air-Fuel Ratio');
 plotFixer();
-print('-depsc','-tiff','-r300','plots/mdotVsRpm');
+print('-depsc','-tiff','-r300','plots/mdot,ratioVsRpm');
+
+%% Deliverable 3
+% Construct performance-metric plots showing how specific thrust, thrust
+% specific fuel consumption, and thermal efficiency vary with spool speed.
+% Use the lower heating value of Jet A (42,800 kJ/kg) for your thermal
+% efficiency calculation, and base your performance metrics on the
+% calculated thrust.
+idealThrust = (mdotAir+mdotFuel).*V(:, end);
+
+sp_thrust = idealThrust ./ mdotAir;
+TSFC = idealThrust ./ mdotFuel; % Thrust Specific Fuel Consumption
+
+powerIn = mdotFuel*const.LHVJetA; % [kW]
+powerThrust = idealThrust.*V(:,end); 
+thermal_eff = powerThrust ./ powerIn;
 
 %% Specific thrust vs spool speed
 plot(krpm, sp_thrust, '-o');
 xlabel('Spool speed [kRPM]');
 ylabel('Specific thrust [Ns/kg]');
-%legend('Location', 'bestoutside');
 title('Specific Thrust v. Spool Speed');
 plotFixer();
 print('-depsc','-tiff','-r300','plots/spthrustVsRpm');
@@ -191,7 +191,6 @@ print('-depsc','-tiff','-r300','plots/spthrustVsRpm');
 plot(krpm, TSFC, '-o');
 xlabel('Spool speed [kRPM]');
 ylabel('Specific thrust [Ns/kg]');
-%legend('Location', 'bestoutside');
 title('Thrust Specific Fuel Consumption v. Spool Speed');
 plotFixer();
 print('-depsc','-tiff','-r300','plots/tsfcVsRpm');
@@ -200,10 +199,9 @@ print('-depsc','-tiff','-r300','plots/tsfcVsRpm');
 % The thermal efficiency of the engine is defined as the ratio between the
 % useful power of the engine over the power supplied.
 
-plot(krpm, TSFC, '-o');
+plot(krpm, thermal_eff, '-o');
 xlabel('Spool speed [kRPM]');
-ylabel('Specific thrust [Ns/kg]');
-%legend('Location', 'bestoutside');
-title('Thrust Specific Fuel Consumption v. Spool Speed');
+ylabel('Thermal Efficiency [1]');
+title('Thermal Efficiency v. Spool Speed');
 plotFixer();
-print('-depsc','-tiff','-r300','plots/tsfcVsRpm');
+print('-depsc','-tiff','-r300','plots/thermalEffVsRpm');

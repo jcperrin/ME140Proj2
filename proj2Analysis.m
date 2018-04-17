@@ -147,24 +147,20 @@ print('-depsc','-tiff','-r300','plots/velVsRpm');
 %
 % TODO: Convert to plotyy
 
-scaledMdotAir = mdotAir.*const.kg2g/10; % [g/s]/10 = [kg/s] * (1000)/(10)
-scaledMdotFuel = mdotFuel.*const.kg2g*10; % [g/s] = [kg/s] * (1000)(10)
+scaledMdotAir = mdotAir.*const.kg2g; % [g/s]
+scaledMdotFuel = mdotFuel.*const.kg2g * 100; % 100 [g/s]
 
-legendString = {'Air mass flow rate (*10)', 'Fuel mass flow rate (/10)',...
-    'Air-fuel ratio'};
-
-close;
-figure;
-hold on;
-plot(krpm, scaledMdotAir, '-o');
-plot(krpm, scaledMdotFuel, '-o'); 
-plot(krpm, airFuelRatio, '-o'); 
-hold off;
+[hAx,hLine1,hLine2] = plotyy(krpm, airFuelRatio, [krpm, krpm],...
+                                [scaledMdotAir, scaledMdotFuel]);
 
 xlabel('Spool speed [kRPM]');
-%ylabel('Air mass flow rate [g/s], Fuel mass flow rate [g/s], Air-fuel ratio');
-legend(legendString, 'Location', 'bestoutside');
-%title('Air Mass Flow, Fuel Mass Flow,\n and Air-Fuel Ratio');
+ylabel(hAx(1), 'Rate_{Air} [g/s],     Rate_{Fuel} [.01 g/s]') % left y-axis 
+ylabel(hAx(2), 'Air:Fuel') % right y-axis
+
+legendString = {'Air-fuel ratio', 'Air mass flow rate', ...
+    'Fuel mass flow rate'};
+legend(legendString, 'Location', 'southeast');
+title('Air Mass Flow, Fuel Mass Flow, and Air-Fuel Ratio');
 plotFixer();
 print('-depsc','-tiff','-r300','plots/mdot,ratioVsRpm');
 
