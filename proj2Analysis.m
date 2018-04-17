@@ -114,9 +114,9 @@ plotFixer();
 print('-depsc','-tiff','-r300','plots/stagTVsRpm');
 
 %% Stagnation Pressure vs Spool Speed
-plot(krpm, P0, '-o');
+plot(krpm, 1e-3.*P0, '-o');
 xlabel('Spool speed [kRPM]');
-ylabel('Stagnation Pressure [Pa]');
+ylabel('Stagnation Pressure [kPa]');
 legend(legendString, 'Location', 'bestoutside');
 title('Stagnation Pressure v. Spool Speed');
 plotFixer();
@@ -150,6 +150,8 @@ print('-depsc','-tiff','-r300','plots/velVsRpm');
 scaledMdotAir = mdotAir.*const.kg2g; % [g/s]
 scaledMdotFuel = mdotFuel.*const.kg2g * 100; % 100 [g/s]
 
+close;
+figure;
 [hAx,hLine1,hLine2] = plotyy(krpm, airFuelRatio, [krpm, krpm],...
                                 [scaledMdotAir, scaledMdotFuel]);
 
@@ -188,9 +190,9 @@ plotFixer();
 print('-depsc','-tiff','-r300','plots/spthrustVsRpm');
 
 %% Thrust specific fuel consumption
-plot(krpm, TSFC, '-o');
+plot(krpm, 1e-3.*TSFC, '-o');
 xlabel('Spool speed [kRPM]');
-ylabel('Specific thrust [Ns/kg]');
+ylabel('Specific thrust [kN s/kg]');
 title('Thrust Specific Fuel Consumption v. Spool Speed');
 plotFixer();
 print('-depsc','-tiff','-r300','plots/tsfcVsRpm');
