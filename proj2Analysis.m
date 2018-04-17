@@ -7,7 +7,7 @@
 % Trinidad
 %
 % Created: 2018-04-11
-% Edited: 2018-04-11
+% Edited: 2018-04-16
 clear all;
 clc;
 
@@ -23,7 +23,8 @@ const.kPaToPa = 1e3; % [Pa/kPa]
 const.kJkmol2Jkg = 1e3/28.97; %[J/kg * kmol/kJ]
 const.airCoefs = const.kJkmol2Jkg .* ...
     fliplr([28.11, 0.1967e-2, 0.4802e-5,-1.966e-9]); % [J/kg/k] cp air
-const.LHVJetA = 42800; % kJ/kg
+const.LHVJetA = 42800; % [kJ/kg]
+const.kg2g = 1e3; % [kg/g]
 
 %% Given Data
 % The following values were supplied to us in the original project
@@ -52,19 +53,6 @@ nObservations = height(collectedData); % Number of observations
 T1 = 23; % [C] room temp
 P1 = 101.4e3; % [Pa] atmospheric pressue
 
-%% Plots
-% Use your performance data and area measurements (listed in Appendix) to
-% construct a series of plots showing how the following quantities vary
-% with spool speed: 
-%
-% * station stagnation temperature (K), 
-% * station stagnation pressure (kPa, absolute), 
-% * station Mach number
-% * station velocity (m/s). 
-%
-% Make sure to include Station 1 in all of your plots. 
-krpm = collectedData.RPM/1000;
-
 %% Solve for Each RPM Observation
 % Loop over every observation taken. For each set of Tm or Pm (the measured
 % values of Temp and Pressure) call Richard's Analysis to calculated the
@@ -78,7 +66,7 @@ P0 = NaN(nObservations, nLocations);
 Ma = NaN(nObservations, nLocations);
 V = NaN(nObservations, nLocations);
 
-mdotAir = NaN(nObservations, 1);
+mdotAir = NaN(nObservations, 1); % [kg/s]
 
 for iObservation = 1:nObservations
     Tm = collectedData{iObservation, 2:6};
@@ -94,20 +82,26 @@ for iObservation = 1:nObservations
     V(iObservation, :) = cell2mat(calculatedValues.V)';
 end
 
-%% Other values
+%% Deliverable 2
+% Use your performance data and area measurements (listed in Appendix) to
+% construct a series of plots showing how the following quantities vary
+% with spool speed: 
+%
+% * station stagnation temperature (K), 
+% * station stagnation pressure (kPa, absolute), 
+% * station Mach number
+% * station velocity (m/s). 
+%
+% Make sure to include Station 1 in all of your plots.
+%
+% First will calculate the deisred values, then plot them later on.
 
-mdotFuel = collectedData.FuelFlow;
-airFuelRatio = mdotAir./mdotFuel;
-idealThrust = (mdotAir+mdotFuel).*V(:, end);
+krpm = collectedData.RPM/1000; % rescale RPM for plotting
 
-sp_thrust = idealThrust ./ mdotAir;
-TSFC = idealThrust ./ mdotFuel; % Thrust Specific Fuel Consumption
+mdotFuel = collectedData.FuelFlow; % [kg/s]
+airFuelRatio = mdotAir./mdotFuel; % [1]
 
-e_consumed = mdotFuel*const.LHVJetA; % Power in kW
-KE_out = idealThrust.*V(:,end);
-thermal_eff = KE_out ./ e_consumed;
-
-%% Plot Stagnation Temp vs Spool Speed
+%% Stagnation Temp vs Spool Speed
 legendString = {'Station 1', 'Station 2', 'Station 3', 'Station 4', ...
     'Station 5', 'Station 8'};
 
@@ -119,7 +113,7 @@ title('Stagnation Temperature v. Spool Speed');
 plotFixer();
 print('-depsc','-tiff','-r300','plots/stagTVsRpm');
 
-%% Plot Stagnation Pressure vs Spool Speed
+%% Stagnation Pressure vs Spool Speed
 plot(krpm, P0, '-o');
 xlabel('Spool speed [kRPM]');
 ylabel('Stagnation Pressure [Pa]');
@@ -129,7 +123,6 @@ plotFixer();
 print('-depsc','-tiff','-r300','plots/stagPVsRpm');
 
 %% Mach Number vs Spool Speed
-
 plot(krpm, Ma, '-o');
 xlabel('Spool speed [kRPM]');
 ylabel('Mach Number [1]');
@@ -147,50 +140,72 @@ title('Velocity v. Spool Speed');
 plotFixer();
 print('-depsc','-tiff','-r300','plots/velVsRpm');
 
-%% Air mass flow rate, fuel mass flow rate, and air-fuel ratio vs spool speed
-
-% The TA interpretation of the handout was for all three of these quantities
-% to be plotted on the same plot.
+%% Air mass flow rate, fuel mass flow rate, air-fuel ratio
+% All three of these quantities to be plotted on the same plot.
 % TA (Isabel) recommends plotting mdot_air/10 and mdot_fuel*10 so that the
 % plot is meaningful, and indicating the change in the legend
+%
+% TODO: Convert to plotyy
 
+scaledMdotAir = mdotAir.*const.kg2g/10; % [g/s]/10 = [kg/s] * (1000)/(10)
+scaledMdotFuel = mdotFuel.*const.kg2g*10; % [g/s] = [kg/s] * (1000)(10)
 
 legendString = {'Air mass flow rate (*10)', 'Fuel mass flow rate (/10)',...
     'Air-fuel ratio'};
 
-plot(krpm, mdotAir*1e2, '-o'); %mdot_air is converted to g/s, then divided by 10
-hold on
-plot(krpm, mdotFuel*1e4, '-o'); %mdot_fuel is converted to g/s, then multiplied by 10
+close;
+figure;
+hold on;
+plot(krpm, scaledMdotAir, '-o');
+plot(krpm, scaledMdotFuel, '-o'); 
 plot(krpm, airFuelRatio, '-o'); 
+hold off;
 
 xlabel('Spool speed [kRPM]');
-ylabel('Air mass flow rate [g/s], Fuel mass flow rate [g/s], Air-fuel ratio');
+%ylabel('Air mass flow rate [g/s], Fuel mass flow rate [g/s], Air-fuel ratio');
 legend(legendString, 'Location', 'bestoutside');
-title('Air Mass Flow Rate, Fuel Mass Flow Rate, and Air-Fuel Ratio v. Spool Speed');
+%title('Air Mass Flow, Fuel Mass Flow,\n and Air-Fuel Ratio');
 plotFixer();
-print('-depsc','-tiff','-r300','plots/mdotVsRpm');
+print('-depsc','-tiff','-r300','plots/mdot,ratioVsRpm');
 
-%% Calculate Thrust versus Experimental
-plot(krpm, idealThrust, krpm, collectedData.Thrust, '-o');
-print('-depsc','-tiff','-r300','plots/thrustsVsRpm');
+%% Deliverable 3
+% Construct performance-metric plots showing how specific thrust, thrust
+% specific fuel consumption, and thermal efficiency vary with spool speed.
+% Use the lower heating value of Jet A (42,800 kJ/kg) for your thermal
+% efficiency calculation, and base your performance metrics on the
+% calculated thrust.
+idealThrust = (mdotAir+mdotFuel).*V(:, end);
+
+sp_thrust = idealThrust ./ mdotAir;
+TSFC = idealThrust ./ mdotFuel; % Thrust Specific Fuel Consumption
+
+powerIn = mdotFuel*const.LHVJetA; % [kW]
+powerThrust = idealThrust.*V(:,end); 
+thermal_eff = powerThrust ./ powerIn;
 
 %% Specific thrust vs spool speed
-
 plot(krpm, sp_thrust, '-o');
 xlabel('Spool speed [kRPM]');
 ylabel('Specific thrust [Ns/kg]');
-%legend('Location', 'bestoutside');
 title('Specific Thrust v. Spool Speed');
 plotFixer();
 print('-depsc','-tiff','-r300','plots/spthrustVsRpm');
 
 %% Thrust specific fuel consumption
-
 plot(krpm, TSFC, '-o');
 xlabel('Spool speed [kRPM]');
 ylabel('Specific thrust [Ns/kg]');
-%legend('Location', 'bestoutside');
 title('Thrust Specific Fuel Consumption v. Spool Speed');
 plotFixer();
 print('-depsc','-tiff','-r300','plots/tsfcVsRpm');
 
+%% Thermal Efficiency
+% The thermal efficiency of the engine is defined as the ratio between the
+% useful power of the engine over the power supplied.
+
+plot(krpm, thermal_eff, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Thermal Efficiency [1]');
+title('Thermal Efficiency v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/thermalEffVsRpm');
