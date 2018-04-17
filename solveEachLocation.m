@@ -17,7 +17,7 @@ function [outputTable, mdotAir] = solveEachLocation(Tm, Pm, mdot_fuel, real_thru
 % * real_thrust_lbs - Measured thrust produced by the engine
 %
 % * outputTable - all of the values of interest
-% * mdot_air - mass of air flowing through engine
+% * mdot_air - mass of air flowing through engine [kg/s]
 %
 %% Example
 % TODO
@@ -66,12 +66,6 @@ Rf_4 = 0.68;
 Rf_5 = 0.86;
 Rf_8 = 0.68;
 
-%mdot_fuel = 0.0029;
-%real_thrust_lbs = 6.7000;
-
-% Code is decomposed so that all the iteration (though
-% not all the math) is in the functions at the bottom.
-
 %% Solve for state 2
 P0_2 = P_atm;%Assumed same as atmospheric for intake
 [P_2, M_2, T0_2, T_2, P0P_2] = solve2(P0_2, Pd_2, Tm_2, Rf_2, A_2, R);
@@ -86,7 +80,8 @@ states(2).P0 = P0_2;
 states(2).T0 = T0_2;
 states(2).T = T_2;
 states(2).V = V_2;
-states(2).mdot = mdot_2;
+
+% states(2).mdot = mdot_2;
 mdotAir = mdot_2; % returned value
 
 %% Solve state 1

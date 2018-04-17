@@ -29,7 +29,7 @@ const.airCoefs = const.kJkmol2Jkg .* ...
 % specifications and should not be changed.
 
 given.pitotEffectiveArea = 6.4*const.insqToMsq; % [m^2]
-given.jetAHeating = 42.8e6; % [J/kg/K]
+given.jetAHeating = 42.8e6; % [J/kg]
 given.A = [27.3, 6.4, 9.0, 7.2, 4.7, 3.87]'.*const.insqToMsq; % [m^2]
 
 %% Import Collected Data
@@ -64,9 +64,107 @@ P1 = 101.4e3; % [Pa] atmospheric pressue
 % Make sure to include Station 1 in all of your plots. 
 krpm = collectedData.RPM/1000;
 
-%% Solve for First RPM
-Tm = collectedData{1, 2:6};
-Pm = collectedData{1, 8:12};
-mdot = collected
-thrust = 
-calculatedValues = solveEachLocation(Tm, Pm, mdot, thrust);
+%% Solve for Each RPM Observation
+% Loop over every observation taken. For each set of Tm or Pm (the measured
+% values of Temp and Pressure) call Richard's Analysis to calculated the
+% values of interest (T0, P0, M, V). These are stored in a 2D array. Each
+% row of the array corresponds to an observation (i.e. one RPM). 
+% Each column is a location of interest.
+
+nLocations = 6; % locations of interest: 1-5, 8
+T0 = NaN(nObservations, nLocations);
+P0 = NaN(nObservations, nLocations);
+Ma = NaN(nObservations, nLocations);
+V = NaN(nObservations, nLocations);
+mdotAir = NaN(nObservations, 1);
+
+for iObservation = 1:nObservations
+    Tm = collectedData{iObservation, 2:6};
+    Pm = collectedData{iObservation, 8:12};
+    mdot = collectedData{iObservation, 13};
+    thrust = collectedData{iObservation, 14};
+    [calculatedValues, thisMdotAir] = solveEachLocation(Tm, Pm, mdot, thrust);
+    mdotAir(iObservation) = thisMdotAir;
+    calculatedValues([6, 7], :) = []; % deletes rows 6/7 (no instruments)
+    T0(iObservation, :) = cell2mat(calculatedValues.T0)';
+    P0(iObservation, :) = cell2mat(calculatedValues.P0)';
+    Ma(iObservation, :) = cell2mat(calculatedValues.M)';
+    V(iObservation, :) = cell2mat(calculatedValues.V)';
+end
+
+%% Plot Stagnation Temp vs Spool Speed
+legendString = {'Station 1', 'Station 2', 'Station 3', 'Station 4', ...
+    'Station 5', 'Station 8'};
+
+plot(krpm, T0, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Stagnation Temp [k]');
+legend(legendString, 'Location', 'bestoutside');
+title('Stagnation Temperature v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/stagTVsRpm');
+
+%% Plot Stagnation Pressure vs Spool Speed
+plot(krpm, P0, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Stagnation Pressure [Pa]');
+legend(legendString, 'Location', 'bestoutside');
+title('Stagnation Pressure v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/stagPVsRpm');
+
+%% Mach Number vs Spool Speed
+
+plot(krpm, Ma, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Mach Number [1]');
+legend(legendString, 'Location', 'bestoutside');
+title('Mach Number v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/MaVsRpm');
+
+%% Velocity vs Spool Speed
+plot(krpm, V, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Velocity [m/s]');
+legend(legendString, 'Location', 'bestoutside');
+title('Velocity v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/velVsRpm');
+
+%% Mass Flow Rate vs Spool Speed
+plot(krpm, mdotAir, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('mDot [g/s]');
+title('Air Flow Rate v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/mdotAirVsRpm');
+
+%% Fuel Flow Rate vs Spool Speed
+mdotFuel = collectedData.FuelFlow * 1e3; % [g/s]
+
+plot(krpm, mdotFuel, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('mDot [g/s]');
+title('Fuel Flow Rate v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/mdotFuelVsRpm');
+
+%% Air/Fuel Ratio vs. Spool Speed
+airFuelRatio = mdotAir ./ mdotFuel;
+
+plot(krpm, airFuelRatio, '-o');
+xlabel('Spool speed [kRPM]');
+ylabel('Air-Fuel Ratio [1]');
+title('Air-Fuel Ratio v. Spool Speed');
+plotFixer();
+print('-depsc','-tiff','-r300','plots/fuelAirRatioVsRpm');
+
+%% Calculate Thrust versus Experimental
+% TODO: COMPLETE
+
+idealThrust = mdotAir.*V(:, end) - V(:, 1))./2;
+plot(krpm, idealThrust, krpm, collectedData.Thrust, '-o');
+print('-depsc','-tiff','-r300','plots/thrustsVsRpm');
+
+

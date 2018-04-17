@@ -1,4 +1,4 @@
-function outputTable = solveEachLocation(Tm, Pm, mdot_fuel, real_thrust_lbs)
+function [outputTable, mdotAir] = solveEachLocation(Tm, Pm, mdot_fuel, real_thrust_lbs)
 %% solveEachLocation
 % This function solves for the values of interest at each location along
 % the length of the jet engine that we are trying to analyze.
@@ -11,10 +11,13 @@ function outputTable = solveEachLocation(Tm, Pm, mdot_fuel, real_thrust_lbs)
 % pressure at each location of interest in the jet engine for one trial (a
 % single value of RPM).
 % 
-% * Tm - A horizontal vector of the temperatures measured at locations 1-5, 8
-% * Pm - A vector of the temperatures measured at locations 1-5, 8
+% * Tm - A horizontal vector of the temperatures measured at locations 2-5, 8
+% * Pm - A vector of the temperatures measured at locations 2-5, 8
 % * mdot_fuel - A double for the rate of fuel consumption
-% * real_trhust_lbs - Measured thrust produced by the engine
+% * real_thrust_lbs - Measured thrust produced by the engine
+%
+% * outputTable - all of the values of interest
+% * mdot_air - mass of air flowing through engine
 %
 %% Example
 % TODO
@@ -23,45 +26,47 @@ function outputTable = solveEachLocation(Tm, Pm, mdot_fuel, real_thrust_lbs)
 % TODO
 
 % Testing solving for T0, P0, M from experimental values
-
 %% Ensure all input values are formatted correctly
+assert(isequal(size(Tm),  [1, 5]), "Tm must be a horizontal vector 5 wide");
+assert(isequal(size(Pm),  [1, 5]), "Pm must be a horizontal vector 5 wide");
+assert(isfloat(mdot_fuel), "mdot_fuel must be of type float");
+assert(isfloat(real_thrust_lbs), "real_thrust_lbs must be of type float");
 
-assert(size(Tm) == [1, 
 %% Constants
 R = 287; % [kJ/kg/k] Gas constant of air
 P_atm = 101325; % [Pa] atmospheric pressure
 ZK = 273.15; % [deg] Celsius to metric conversion.
 conv = 1/1550; % [m^2/in^2] square meters per square inch
 
-%Test values
-Tm_2 = 21.3838+ZK;
-Tm_3 = 113.8878+ZK;
-Tm_4 = 581.9337+ZK;
-Tm_5 = 493.1745+ZK;
-Tm_8 = 478.7055+ZK;
-Pd_2 = 1000*1.5733;
-P0_3 = 1000*108.9267+P_atm;
-P_4 = 1000*103.8528+P_atm;
-P0_5 = 1000*12.4216+P_atm;
-P0_8 = 1000*9.7488+P_atm;
+% Collected Data
+Tm_2 = Tm(1) + ZK; %21.3838+ZK;
+Tm_3 = Tm(2) + ZK; %113.8878+ZK;
+Tm_4 = Tm(3) + ZK; %581.9337+ZK;
+Tm_5 = Tm(4) + ZK; %493.1745+ZK;
+Tm_8 = Tm(5) + ZK; %478.7055+ZK;
+
+Pd_2 = Pm(1)*1e3; %1000*1.5733;
+P0_3 = Pm(2)*1e3 + P_atm; %1000*108.9267+P_atm;
+P_4 = Pm(3)*1e3 + P_atm; %1000*103.8528+P_atm;
+P0_5 = Pm(4)*1e3 + P_atm; %1000*12.4216+P_atm;
+P0_8 = Pm(5)*1e3 + P_atm; %1000*9.7488+P_atm;
+
+% Areas
 A_1 = 27.3*conv;
 A_2 = 6.4*conv;
 A_3 = 9.0*conv;
 A_4 = 7.2*conv;
 A_5 = 4.7*conv;
 A_8 = 3.87*conv;
+
+% Recovery Factors
 Rf_2 = 0.68;
 Rf_3 = 0.68;
 Rf_4 = 0.68;
 Rf_5 = 0.86;
 Rf_8 = 0.68;
-mdot_fuel = 0.0029;
-real_thrust_lbs = 6.7000;
 
-% Code is decomposed so that all the iteration (though
-% not all the math) is in the functions at the bottom.
-
-%Solve for state 2
+%% Solve for state 2
 P0_2 = P_atm;%Assumed same as atmospheric for intake
 [P_2, M_2, T0_2, T_2, P0P_2] = solve2(P0_2, Pd_2, Tm_2, Rf_2, A_2, R);
 %Do MFP & V calculations
@@ -75,9 +80,11 @@ states(2).P0 = P0_2;
 states(2).T0 = T0_2;
 states(2).T = T_2;
 states(2).V = V_2;
-states(2).mdot = mdot_2;
 
-%Solve state 1
+% states(2).mdot = mdot_2;
+mdotAir = mdot_2; % returned value
+
+%% Solve state 1
 [M_1,T_1] = solve1(mdot_2,P0_2,T0_2, A_1, R);%Ideal intake
 V_1 = M_1*sqrt(k(T_1)*R*T_1);
 
@@ -88,7 +95,7 @@ states(1).T0 = T0_2;
 states(1).T = T_1;
 states(1).V = V_1;
 
-%Solve state 3
+%% Solve state 3
 [M_3, T_3, T0_3] = solve358(mdot_2, P0_3, Tm_3, Rf_3, A_3, R);
 V_3 = M_3*sqrt(k(T_3)*R*T_3);
 states(3).M = M_3;
@@ -97,7 +104,7 @@ states(3).T0 = T0_3;
 states(3).T = T_3;
 states(3).V = V_3;
 
-%Solve state 4
+%% Solve state 4
 [M_4, T_4, T0_4, P0_4] = solve4(mdot_2+mdot_fuel, P_4, Tm_4, Rf_4, A_4, R);
 V_4 = M_4*sqrt(k(T_4)*R*T_4);
 states(4).M = M_4;
@@ -106,7 +113,7 @@ states(4).T0 = T0_4;
 states(4).T = T_4;
 states(4).V = V_4;
 
-%Solve state 5
+%% Solve state 5
 [M_5, T_5, T0_5] = solve358(mdot_2+mdot_fuel, P0_5, Tm_5, Rf_5, A_5, R);
 V_5 = M_5*sqrt(k(T_5)*R*T_5);
 states(5).M = M_5;
@@ -115,7 +122,7 @@ states(5).T0 = T0_5;
 states(5).T = T_5;
 states(5).V = V_5;
 
-%Solve state 8
+%% Solve state 8
 [M_8, T_8, T0_8] = solve358(mdot_2+mdot_fuel, P0_8, Tm_8, Rf_8, A_8, R);
 V_8 = M_8*sqrt(k(T_8)*R*T_8);
 states(8).M = M_8;
@@ -130,6 +137,7 @@ thrust_lbs = thrust/4.45;
 %disp(thrust_lbs);
 %disp(real_thrust_lbs);
 
+outputTable = struct2table(states);
 end %overall function
 
 %Begin functions for iteration

@@ -29,7 +29,7 @@ const.airCoefs = const.kJkmol2Jkg .* ...
 % specifications and should not be changed.
 
 given.pitotEffectiveArea = 6.4*const.insqToMsq; % [m^2]
-given.jetAHeating = 42.8e6; % [J/kg/K]
+given.jetAHeating = 42.8e6; % [J/kg]
 given.A = [27.3, 6.4, 9.0, 7.2, 4.7, 3.87]'.*const.insqToMsq; % [m^2]
 
 %% Import Collected Data
@@ -51,19 +51,6 @@ nObservations = height(collectedData); % Number of observations
 T1 = 23; % [C] room temp
 P1 = 101.4e3; % [Pa] atmospheric pressue
 
-%% Plots
-% Use your performance data and area measurements (listed in Appendix) to
-% construct a series of plots showing how the following quantities vary
-% with spool speed: 
-%
-% * station stagnation temperature (K), 
-% * station stagnation pressure (kPa, absolute), 
-% * station Mach number
-% * station velocity (m/s). 
-%
-% Make sure to include Station 1 in all of your plots. 
-krpm = collectedData.RPM/1000;
-
 %% Solve for Each RPM Observation
 % Loop over every observation taken. For each set of Tm or Pm (the measured
 % values of Temp and Pressure) call Richard's Analysis to calculated the
@@ -76,7 +63,7 @@ T0 = NaN(nObservations, nLocations);
 P0 = NaN(nObservations, nLocations);
 Ma = NaN(nObservations, nLocations);
 V = NaN(nObservations, nLocations);
-mdotAir = NaN(nObservations, 1);
+mdotAir = NaN(nObservations, 1); % [kg/s]
 
 for iObservation = 1:nObservations
     Tm = collectedData{iObservation, 2:6};
@@ -91,6 +78,20 @@ for iObservation = 1:nObservations
     Ma(iObservation, :) = cell2mat(calculatedValues.M)';
     V(iObservation, :) = cell2mat(calculatedValues.V)';
 end
+
+%% Plots
+% Use your performance data and area measurements (listed in Appendix) to
+% construct a series of plots showing how the following quantities vary
+% with spool speed: 
+%
+% * station stagnation temperature (K), 
+% * station stagnation pressure (kPa, absolute), 
+% * station Mach number
+% * station velocity (m/s). 
+%
+% Make sure to include Station 1 in all of your plots. 
+
+krpm = collectedData.RPM/1000;
 
 %% Plot Stagnation Temp vs Spool Speed
 legendString = {'Station 1', 'Station 2', 'Station 3', 'Station 4', ...
@@ -141,9 +142,9 @@ plotFixer();
 print('-depsc','-tiff','-r300','plots/mdotAirVsRpm');
 
 %% Fuel Flow Rate vs Spool Speed
-mdotFuel = collectedData.FuelFlow * 1e3; % [g/s]
+mdotFuel = collectedData.FuelFlow; % [kg/s]
 
-plot(krpm, mdotFuel, '-o');
+plot(krpm, mdotFuel.*1e3, '-o');
 xlabel('Spool speed [kRPM]');
 ylabel('mDot [g/s]');
 title('Fuel Flow Rate v. Spool Speed');
@@ -163,8 +164,8 @@ print('-depsc','-tiff','-r300','plots/fuelAirRatioVsRpm');
 %% Calculate Thrust versus Experimental
 % TODO: COMPLETE
 
-idealThrust = mdotAir.*(V(:, end) - V(:, 1));
-plot(krpm, idealThrust, krpm, collectedData.Thrust, '-o');
+idealThrust = (mdotAir + mdotFuel).*V(:, end); % [N]
+plot(krpm, [idealThrust, collectedData.Thrust* const.lbfToN], '-o');
 print('-depsc','-tiff','-r300','plots/thrustsVsRpm');
 
 
