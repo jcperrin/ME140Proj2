@@ -269,7 +269,7 @@ print('-depsc','-tiff','-r300','plots/pTurbinepCompVsRpm');
 %% Efficiencies
 % The adiabatic efficiencies of the compressor and turbine are given by
 %
-% $$ \eta = \frac{W}{W_s} = \frac{\Delta T_{0s}}{\Delta T_0}$$
+% $$ \eta = \frac{W}{W_s} = \frac{\Delta T_0}{\Delta T_{0s}}$$
 %
 % We can find the isentropic stagnation Temp using the isentropic relation
 %
@@ -279,13 +279,13 @@ print('-depsc','-tiff','-r300','plots/pTurbinepCompVsRpm');
 k = gamma_avg(T0TurbIn, T0TurbOut);
 P0In = P0(:, 4);
 P0Out = P0(:, 5);
-T0TurbS = T0TurbIn .* (P0In ./ P0Out).^(k./(k-1));
+T0TurbS = T0TurbIn .* (P0Out ./ P0In).^(k./(k-1));
 effTurbine = abs(dT0Turbine./(T0TurbS - T0TurbIn));
 
 k = gamma_avg(T0CompIn, T0CompOut);
 P0In = P0(:, 2);
 P0Out = P0(:, 3);
-T0CompS = T0CompIn .* (P0In ./ P0Out).^(k./(k-1));
+T0CompS = T0CompIn .* (P0Out ./ P0In).^(k./(k-1));
 effCompressor = abs(dT0Compressor./(T0CompS - T0CompIn));
 
 clear T0CompIn T0CompOut T0TurbIn T0TurbOut dT0Turbine dT0Compressor k
@@ -294,5 +294,8 @@ clear T0CompS T0TurbS P0In P0Out
 % Plot efficiency of both components against rpm.
 plot(krpm, [effTurbine, effCompressor], '-o');
 xlabel('Spool Speed [kRPM]');
-legend('Turbine', 'Compressor', 'Location', 'southwest');
+legend('Turbine', 'Compressor', 'Location', 'northwest');
 plotFixer();
+
+%%
+% Stagnation pressure ratio across the combustor.
